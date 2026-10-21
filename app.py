@@ -1,6 +1,7 @@
 import os
 import psycopg2
 import streamlit as st
+from streamlit_geolocation import streamlit_geolocation
 
 # Configuração da Página
 st.set_page_config(
@@ -32,6 +33,26 @@ def get_db_connection():
     )
     return None
   return psycopg2.connect(DATABASE_URL)
+
+
+# --- CAPTURAR GEOLOCALIZAÇÃO DO TELEMÓVEL ---
+st.markdown("---")
+st.markdown("📍 **Obter Localização GPS Automática**")
+location = streamlit_geolocation()
+
+# Valores por defeito (caso o GPS ainda não tenha respondido)
+default_lat = 38.892100
+default_lon = -9.083400
+
+if location.get("latitude") and location.get("longitude"):
+  default_lat = location["latitude"]
+  default_lon = location["longitude"]
+  st.success("Coordenadas obtidas do telemóvel com sucesso!")
+else:
+  st.info(
+      "💡 Clique no botão do componente acima para carregar as coordenadas"
+      " GPS atuais do telemóvel."
+  )
 
 
 # Formulário de Recolha em Campo
@@ -81,12 +102,16 @@ with st.form("form_recolha_rigoroso"):
     )
 
   st.markdown("---")
-  st.markdown("📍 **Coordenadas GPS Obrigatórias**")
+  st.markdown("📍 **Coordenadas GPS (Preenchidas Automaticamente)**")
   col_lat, col_lon = st.columns(2)
   with col_lat:
-    gps_lat = st.number_input("Latitude *", value=38.892100, format="%.6f")
+    gps_lat = st.number_input(
+        "Latitude *", value=float(default_lat), format="%.6f"
+    )
   with col_lon:
-    gps_lon = st.number_input("Longitude *", value=-9.083400, format="%.6f")
+    gps_lon = st.number_input(
+        "Longitude *", value=float(default_lon), format="%.6f"
+    )
 
   st.markdown("---")
   uploaded_image = st.file_uploader(
